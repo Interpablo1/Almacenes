@@ -34,4 +34,10 @@ export class UsuariosController {
   remove(@Param('id') id: string) {
     return this.usuariosService.remove(+id);
   }
+
+  @Post('auth')
+  async authenticate(@Body() body: { email: string; password: string }) {
+    const result = await this.usuariosService.authenticate(body.email, body.password);
+    return result.success ? { success: true, id: result.id } : { success: false };
+  }
 }

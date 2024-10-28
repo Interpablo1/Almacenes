@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Usuario } from './entities/usuario.entity';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsuariosService {
@@ -39,5 +40,20 @@ export class UsuariosService {
     if (result.affected === 0) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
+  }
+
+  // Método de autenticación
+  async authenticate(email: string, password: string): Promise<{ success: boolean; id?: number }> {
+    const usuario = await this.usuarioRepository.findOne({ where: { email } });
+    if (!usuario) {
+      return { success: false };
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, usuario.password);
+    if (!isPasswordValid) {
+      return { success: false };
+    }
+
+    return { success: true, id: usuario.id_usuario };
   }
 }
